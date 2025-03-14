@@ -892,13 +892,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Use highlighted text if available, otherwise use regular text
                             const displayText = issue.highlightedText || issue.text;
                             
-                            // Create suggested fix section if available
-                            const suggestedFixHtml = issue.suggestedFix ? `
-                                <div class="issue-fix-container">
-                                    <div class="issue-fix-label">Suggested fix:</div>
-                                    <div class="issue-fix">${issue.suggestedFix}</div>
-                                </div>
-                            ` : '';
+                            // Suggested fix section removed as requested
+                            const suggestedFixHtml = '';
                             
                             return `
                                 <div class="issue-item">
