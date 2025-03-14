@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Writing Guidelines Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Technical Writing Guidelines Analyzer</h1>
+        <p>Analyze your text against Google's Technical Writing Guidelines</p>
+    </header>
+
+    <main>
+        <section id="input-section">
+            <h2>Paste Your Text</h2>
+            <textarea id="text-input" placeholder="Paste your technical writing here..."></textarea>
+            <button id="analyze-btn">Analyze Text</button>
+        </section>
+
+        <section id="results-section" class="hidden">
+            <h2>Analysis Results</h2>
+            
+            <div id="summary-container">
+                <h3>Summary</h3>
+                <div id="summary-content"></div>
+            </div>
+            
+            <div id="issues-container">
+                <h3>Issues to Fix</h3>
+                <div id="issues-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Based on <a href="https://developers.google.com/tech-writing" target="_blank">Google's Technical Writing Guidelines</a></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
