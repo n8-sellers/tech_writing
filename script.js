@@ -894,9 +894,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             // Create suggested fix section if available
                             const suggestedFixHtml = issue.suggestedFix ? `
-                                <div class="issue-fix">
-                                    <span class="issue-fix-label">Suggested fix:</span>
-                                    ${issue.suggestedFix}
+                                <div class="issue-fix-container">
+                                    <div class="issue-fix-label">Suggested fix:</div>
+                                    <div class="issue-fix">${issue.suggestedFix}</div>
                                 </div>
                             ` : '';
                             
