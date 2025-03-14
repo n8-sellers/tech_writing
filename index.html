@@ -5,16 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Technical Writing Guidelines Analyzer</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
-<body>
+<body class="light-theme">
     <header>
-        <h1>Technical Writing Guidelines Analyzer</h1>
-        <p>Analyze your text against Google's Technical Writing Guidelines</p>
+        <div class="header-content">
+            <h1>Technical Writing Guidelines Analyzer</h1>
+            <p>Analyze your text against Google's Technical Writing Guidelines</p>
+        </div>
+        <div class="theme-toggle">
+            <button id="theme-toggle-btn" aria-label="Toggle dark mode">
+                <span class="material-icons" id="theme-icon">dark_mode</span>
+            </button>
+        </div>
     </header>
 
     <main>
         <section id="input-section">
-            <h2>Paste Your Text</h2>
+            <div class="section-header">
+                <h2>Paste Your Text</h2>
+                <button id="settings-toggle-btn" class="icon-button" aria-label="Toggle settings">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            
+            <div id="settings-panel" class="hidden">
+                <h3>Analysis Settings</h3>
+                <div class="settings-grid">
+                    <div class="settings-group">
+                        <h4>Enable/Disable Checks</h4>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="check-passive-voice" checked> Passive Voice</label>
+                            <label><input type="checkbox" id="check-long-sentences" checked> Long Sentences</label>
+                            <label><input type="checkbox" id="check-complex-words" checked> Complex Words</label>
+                            <label><input type="checkbox" id="check-pronouns" checked> Unclear Pronouns</label>
+                            <label><input type="checkbox" id="check-we-vs-you" checked> "We" in Instructions</label>
+                            <label><input type="checkbox" id="check-ambiguous" checked> Ambiguous Terms</label>
+                            <label><input type="checkbox" id="check-terminology" checked> Inconsistent Terminology</label>
+                            <label><input type="checkbox" id="check-headings" checked> Heading Capitalization</label>
+                            <label><input type="checkbox" id="check-bullets" checked> Bullet Point Parallelism</label>
+                            <label><input type="checkbox" id="check-acronyms" checked> Undefined Acronyms</label>
+                            <label><input type="checkbox" id="check-gendered" checked> Gendered Language</label>
+                            <label><input type="checkbox" id="check-imperative" checked> Imperative Mood</label>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <h4>Thresholds</h4>
+                        <div class="slider-group">
+                            <label for="long-sentence-threshold">Long Sentence Threshold: <span id="long-sentence-value">25</span> words</label>
+                            <input type="range" id="long-sentence-threshold" min="15" max="40" value="25">
+                        </div>
+                    </div>
+                </div>
+                <button id="save-settings-btn" class="secondary-btn">Save Settings</button>
+            </div>
+            
             <textarea id="text-input" placeholder="Paste your technical writing here..."></textarea>
             <button id="analyze-btn">Analyze Text</button>
         </section>
@@ -25,6 +70,12 @@
             <div id="summary-container">
                 <h3>Summary</h3>
                 <div id="summary-content"></div>
+            </div>
+            
+            <div id="readability-container">
+                <h3>Readability Metrics</h3>
+                <div id="readability-content"></div>
+                <p class="info-text">These metrics help evaluate how easy your text is to read and understand.</p>
             </div>
             
             <div id="issues-container">
