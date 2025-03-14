@@ -515,11 +515,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 const startsWithImperative = commonImperativeVerbs.includes(firstWord);
                 
                 if (!startsWithImperative) {
-                    results.issues.push({
-                        type: 'Non-Imperative Instructions',
-                        text: sentence.trim(),
-                        suggestion: 'For instructions, use imperative mood (direct commands) instead of phrases like "should" or "must". For example, use "Click the button" instead of "You should click the button".'
-                    });
+                    // Find the instruction keyword in the sentence
+                    const keyword = instructionKeywords.find(kw => sentence.toLowerCase().includes(kw));
+                    if (keyword) {
+                        // Create a highlighted version with the keyword highlighted
+                        const keywordRegex = new RegExp(`\\b${keyword}\\b`, 'i');
+                        const match = sentence.match(keywordRegex);
+                        if (match) {
+                            const keywordIndex = match.index;
+                            const highlightedText = 
+                                sentence.trim().substring(0, keywordIndex) + 
+                                '<span class="highlight">' + 
+                                sentence.trim().substring(keywordIndex, keywordIndex + keyword.length) + 
+                                '</span>' + 
+                                sentence.trim().substring(keywordIndex + keyword.length);
+                            
+                            results.issues.push({
+                                type: 'Non-Imperative Instructions',
+                                text: sentence.trim(),
+                                highlightedText: highlightedText,
+                                suggestion: 'For instructions, use imperative mood (direct commands) instead of phrases like "should" or "must". For example, use "Click the button" instead of "You should click the button".',
+                                suggestedFix: `"Click the button" instead of "You should click the button"`
+                            });
+                        } else {
+                            results.issues.push({
+                                type: 'Non-Imperative Instructions',
+                                text: sentence.trim(),
+                                suggestion: 'For instructions, use imperative mood (direct commands) instead of phrases like "should" or "must". For example, use "Click the button" instead of "You should click the button".',
+                                suggestedFix: `"Click the button" instead of "You should click the button"`
+                            });
+                        }
+                    } else {
+                        results.issues.push({
+                            type: 'Non-Imperative Instructions',
+                            text: sentence.trim(),
+                            suggestion: 'For instructions, use imperative mood (direct commands) instead of phrases like "should" or "must". For example, use "Click the button" instead of "You should click the button".',
+                            suggestedFix: `"Click the button" instead of "You should click the button"`
+                        });
+                    }
                 }
             }
         });
@@ -554,33 +587,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         '</span>' + 
                         sentenceTrimmed.substring(passiveIndex + passiveConstruction.length);
                     
-                    // Create a suggested fix by converting to active voice (simplified approach)
-                    let suggestedFix = '';
-                    
-                    // Try to identify subject and object for simple cases
-                    const parts = sentenceTrimmed.split(passiveConstruction);
-                    if (parts.length === 2) {
-                        const beforePassive = parts[0].trim();
-                        const afterPassive = parts[1].trim();
-                        
-                        // Look for "by [subject]" pattern
-                        const byMatch = afterPassive.match(/\bby\s+([^,.;:]+)/i);
-                        if (byMatch) {
-                            const subject = byMatch[1].trim();
-                            const object = beforePassive;
-                            const verb = match[1]; // The verb part from the regex capture group
-                            
-                            suggestedFix = `${subject} ${verb} ${object}`.replace(/\s+/g, ' ').trim();
-                            
-                            // Clean up any remaining "by" phrase
-                            suggestedFix = suggestedFix.replace(/\s+by\s+[^,.;:]+/i, '');
-                        }
-                    }
-                    
-                    // If we couldn't generate a specific fix, provide a generic message
-                    if (!suggestedFix) {
-                        suggestedFix = "Consider rewriting in active voice format: 'Subject verb object' instead of 'Object is verbed by subject'";
-                    }
+                    // Provide a simple, general example for passive voice
+                    const suggestedFix = "\"The team completed the feature\" instead of \"The feature was completed by the team\"";
                     
                     results.issues.push({
                         type: 'Passive Voice',
@@ -659,11 +667,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         match => `<span class="highlight">${match}</span>`
                     );
                     
-                    // Create a suggested fix by replacing the complex word with the simple alternative
-                    const suggestedFix = sentenceTrimmed.replace(
-                        complexRegex,
-                        simple
-                    );
+                    // Provide a simple, general example
+                    const suggestedFix = `"${simple}" instead of "${complex}"`;
                     
                     results.issues.push({
                         type: 'Complex Wording',
@@ -679,7 +684,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         text: `"${complex}"`,
                         highlightedText: `"<span class="highlight">${complex}</span>"`,
                         suggestion: `Consider using "${simple}" instead of "${complex}" for simplicity.`,
-                        suggestedFix: `Use "${simple}" instead`
+                        suggestedFix: `"${simple}" instead of "${complex}"`
                     });
                 }
             }
@@ -693,10 +698,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         for (let i = 0; i < sentences.length; i++) {
             if (pronounsAtStart.test(sentences[i].trim()) && i > 0) {
+                // Get the pronoun that starts the sentence
+                const pronoun = sentences[i].trim().split(/\s+/)[0];
+                
                 results.issues.push({
                     type: 'Unclear Pronoun Reference',
                     text: sentences[i].trim(),
-                    suggestion: 'Starting a sentence with a pronoun can create ambiguity. Consider clarifying what the pronoun refers to.'
+                    highlightedText: `<span class="highlight">${pronoun}</span>` + sentences[i].trim().substring(pronoun.length),
+                    suggestion: 'Starting a sentence with a pronoun can create ambiguity. Consider clarifying what the pronoun refers to.',
+                    suggestedFix: `"The process requires approval" instead of "It requires approval"`
                 });
             }
         }
@@ -709,11 +719,30 @@ document.addEventListener('DOMContentLoaded', () => {
         
         sentences.forEach(sentence => {
             if (weInstructions.test(sentence)) {
-                results.issues.push({
-                    type: 'Use of "We" in Instructions',
-                    text: sentence.trim(),
-                    suggestion: 'For instructions, use "you" instead of "we" to directly address the reader.'
-                });
+                // Find the "we" in the sentence and highlight it
+                const weMatch = sentence.match(/\bwe\b/i);
+                if (weMatch) {
+                    const weIndex = weMatch.index;
+                    const highlightedText = 
+                        sentence.trim().substring(0, weIndex) + 
+                        '<span class="highlight">we</span>' + 
+                        sentence.trim().substring(weIndex + 2);
+                    
+                    results.issues.push({
+                        type: 'Use of "We" in Instructions',
+                        text: sentence.trim(),
+                        highlightedText: highlightedText,
+                        suggestion: 'For instructions, use "you" instead of "we" to directly address the reader.',
+                        suggestedFix: `"You can configure this setting" instead of "We can configure this setting"`
+                    });
+                } else {
+                    results.issues.push({
+                        type: 'Use of "We" in Instructions',
+                        text: sentence.trim(),
+                        suggestion: 'For instructions, use "you" instead of "we" to directly address the reader.',
+                        suggestedFix: `"You can configure this setting" instead of "We can configure this setting"`
+                    });
+                }
             }
         });
     }
