@@ -541,10 +541,53 @@ document.addEventListener('DOMContentLoaded', () => {
                     sentence.includes(match[0]));
                 
                 if (containingSentence) {
+                    // Create a version of the sentence with the passive voice highlighted
+                    const passiveConstruction = match[0];
+                    const sentenceTrimmed = containingSentence.trim();
+                    const passiveIndex = sentenceTrimmed.indexOf(passiveConstruction);
+                    
+                    // Create a highlighted version of the text
+                    const highlightedText = 
+                        sentenceTrimmed.substring(0, passiveIndex) + 
+                        '<span class="highlight">' + 
+                        passiveConstruction + 
+                        '</span>' + 
+                        sentenceTrimmed.substring(passiveIndex + passiveConstruction.length);
+                    
+                    // Create a suggested fix by converting to active voice (simplified approach)
+                    let suggestedFix = '';
+                    
+                    // Try to identify subject and object for simple cases
+                    const parts = sentenceTrimmed.split(passiveConstruction);
+                    if (parts.length === 2) {
+                        const beforePassive = parts[0].trim();
+                        const afterPassive = parts[1].trim();
+                        
+                        // Look for "by [subject]" pattern
+                        const byMatch = afterPassive.match(/\bby\s+([^,.;:]+)/i);
+                        if (byMatch) {
+                            const subject = byMatch[1].trim();
+                            const object = beforePassive;
+                            const verb = match[1]; // The verb part from the regex capture group
+                            
+                            suggestedFix = `${subject} ${verb} ${object}`.replace(/\s+/g, ' ').trim();
+                            
+                            // Clean up any remaining "by" phrase
+                            suggestedFix = suggestedFix.replace(/\s+by\s+[^,.;:]+/i, '');
+                        }
+                    }
+                    
+                    // If we couldn't generate a specific fix, provide a generic message
+                    if (!suggestedFix) {
+                        suggestedFix = "Consider rewriting in active voice format: 'Subject verb object' instead of 'Object is verbed by subject'";
+                    }
+                    
                     results.issues.push({
                         type: 'Passive Voice',
-                        text: containingSentence.trim(),
-                        suggestion: 'Use active voice instead of passive voice. Active voice is more direct and easier to read.'
+                        text: sentenceTrimmed,
+                        highlightedText: highlightedText,
+                        suggestion: 'Use active voice instead of passive voice. Active voice is more direct and easier to read.',
+                        suggestedFix: suggestedFix
                     });
                 }
             }
@@ -597,12 +640,48 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const [complex, simple] of Object.entries(complexWords)) {
             const regex = new RegExp(`\\b${complex}\\b`, 'gi');
             
-            if (regex.test(text)) {
-                results.issues.push({
-                    type: 'Complex Wording',
-                    text: `"${complex}"`,
-                    suggestion: `Consider using "${simple}" instead of "${complex}" for simplicity.`
-                });
+            // Find all instances of this complex word
+            const matches = [...text.matchAll(regex)];
+            
+            if (matches.length > 0) {
+                // Find a sentence containing this complex word for context
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+                const containingSentence = sentences.find(sentence => 
+                    sentence.toLowerCase().includes(complex.toLowerCase()));
+                
+                if (containingSentence) {
+                    const sentenceTrimmed = containingSentence.trim();
+                    
+                    // Create a highlighted version with the complex word highlighted
+                    const complexRegex = new RegExp(`\\b${complex}\\b`, 'gi');
+                    const highlightedText = sentenceTrimmed.replace(
+                        complexRegex, 
+                        match => `<span class="highlight">${match}</span>`
+                    );
+                    
+                    // Create a suggested fix by replacing the complex word with the simple alternative
+                    const suggestedFix = sentenceTrimmed.replace(
+                        complexRegex,
+                        simple
+                    );
+                    
+                    results.issues.push({
+                        type: 'Complex Wording',
+                        text: sentenceTrimmed,
+                        highlightedText: highlightedText,
+                        suggestion: `Consider using "${simple}" instead of "${complex}" for simplicity.`,
+                        suggestedFix: suggestedFix
+                    });
+                } else {
+                    // If we can't find a containing sentence, just highlight the word itself
+                    results.issues.push({
+                        type: 'Complex Wording',
+                        text: `"${complex}"`,
+                        highlightedText: `"<span class="highlight">${complex}</span>"`,
+                        suggestion: `Consider using "${simple}" instead of "${complex}" for simplicity.`,
+                        suggestedFix: `Use "${simple}" instead`
+                    });
+                }
             }
         }
     }
@@ -780,12 +859,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const issueTypeHtml = `
                     <div class="issue-type">
                         <h4>${type} (${issues.length})</h4>
-                        ${issues.map(issue => `
-                            <div class="issue-item">
-                                <div class="issue-text">${issue.text}</div>
-                                <div class="issue-suggestion">${issue.suggestion}</div>
-                            </div>
-                        `).join('')}
+                        ${issues.map(issue => {
+                            // Use highlighted text if available, otherwise use regular text
+                            const displayText = issue.highlightedText || issue.text;
+                            
+                            // Create suggested fix section if available
+                            const suggestedFixHtml = issue.suggestedFix ? `
+                                <div class="issue-fix">
+                                    <span class="issue-fix-label">Suggested fix:</span>
+                                    ${issue.suggestedFix}
+                                </div>
+                            ` : '';
+                            
+                            return `
+                                <div class="issue-item">
+                                    <div class="issue-text">${displayText}</div>
+                                    <div class="issue-suggestion">${issue.suggestion}</div>
+                                    ${suggestedFixHtml}
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
                 
